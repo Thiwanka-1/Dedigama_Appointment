@@ -54,7 +54,7 @@ const AppointmentRequestPage = () => {
     console.log(appointmentData); // Debugging purpose
 
     try {
-      const response = await axios.post('http://localhost:3000/api/appointments/request', appointmentData);
+      const response = await axios.post('/api/appointments/request', appointmentData);
       
       if (response.status === 201 && response.data.success) {
         setMessage({ text: 'Appointment request submitted successfully!', type: 'success' });

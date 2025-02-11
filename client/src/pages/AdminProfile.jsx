@@ -5,7 +5,6 @@ import { app } from '../firebase';
 import { updateUserStart, updateUserSuccess, updateUserFailure, deleteUserStart, deleteUserSuccess, deleteUserFailure, signOut } from '../redux/user/userSlice';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
-import axios from 'axios';
 
 export default function AdminProfile() {
   const dispatch = useDispatch();

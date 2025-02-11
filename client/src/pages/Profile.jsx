@@ -4,8 +4,6 @@ import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/
 import { app } from '../firebase';
 import { updateUserStart, updateUserSuccess, updateUserFailure, deleteUserStart, deleteUserSuccess, deleteUserFailure, signOut } from '../redux/user/userSlice';
 import Sidebar from '../components/Sidebar';
-import axios from 'axios';
-
 
 export default function Profile() {
   const dispatch = useDispatch();

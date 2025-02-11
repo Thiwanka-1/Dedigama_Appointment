@@ -16,11 +16,11 @@ const AppointmentRequestPage = () => {
   const [selectedEndTime, setSelectedEndTime] = useState(endTimeFromUrl || '');
   const [reason, setReason] = useState('');
   const [requestedBy, setRequestedBy] = useState('');
+  const [phoneNum, setPhoneNum] = useState('');
   const [message, setMessage] = useState({ text: '', type: '' });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState(''); // Error message state
   const [isTimeValid, setIsTimeValid] = useState(true); // Track if time is valid
-
   const token = localStorage.getItem('access_token');
   const userId = localStorage.getItem('userId') || 'someUserId';
 
@@ -66,11 +66,14 @@ const AppointmentRequestPage = () => {
       reason,
       withWhom: requestedBy,
       userId,
+      phoneNum,
     };
 
     try {
-      const response = await axios.post('/api/appointments/request', appointmentData);
-      
+      const response = await axios.post('http://localhost:3000/api/appointments/request', appointmentData, {
+        withCredentials: true,  // Make sure cookies (JWT) are sent
+      });
+            
       if (response.status === 201 && response.data.success) {
         setMessage({ text: 'Appointment request submitted successfully!', type: 'success' });
         setIsModalOpen(true);
@@ -190,6 +193,17 @@ const AppointmentRequestPage = () => {
               className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+          <div className="mb-6">
+            <label htmlFor="phoneNum" className="block text-sm font-medium text-gray-700">Phone Number</label>
+            <input
+              type="number"
+              id="phoneNum"
+              value={phoneNum}
+              onChange={(e) => setPhoneNum(e.target.value)}
+              required
+              className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
 
           <button
             type="submit"
@@ -213,6 +227,7 @@ const AppointmentRequestPage = () => {
               <p><strong>Time:</strong> {selectedStartTime} - {selectedEndTime}</p>
               <p><strong>Reason:</strong> {reason}</p>
               <p><strong>Requested By:</strong> {requestedBy}</p>
+              <p><strong>Phone Number:</strong> {phoneNum}</p>
             </div>
             <div className="mt-6 flex justify-center">
               <button 

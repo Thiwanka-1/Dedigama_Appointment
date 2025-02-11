@@ -17,6 +17,7 @@ const appointmentRequestSchema = new mongoose.Schema({
   appointmentNumber: { type: Number, default: null }, // Will be assigned once approved
   createdAt: { type: Date, default: Date.now }, // Automatically set to the current date/time
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },  // ObjectId for user
+  phoneNum: { type: String, required: true },
 });
 
 // Create an index for faster queries based on date and time

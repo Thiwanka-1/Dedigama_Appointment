@@ -318,7 +318,7 @@ export const checkAvailability = async (req, res) => {
 export const addAppointmentRequest = async (req, res) => {
   try {
     // Destructure necessary data from the request body
-    const { appointmentName, date, timeRange, reason, withWhom } = req.body;
+    const { appointmentName, date, timeRange, reason, withWhom, phoneNum } = req.body;
 
     // Log the incoming request for debugging
 
@@ -350,7 +350,9 @@ export const addAppointmentRequest = async (req, res) => {
       timeRange,
       reason,
       withWhom,
-      userId: userObjectId,  // Use the corrected ObjectId
+      phoneNum,
+      userId: userObjectId, 
+       // Use the corrected ObjectId
     });
 
     // Save the new appointment request to the database
@@ -426,7 +428,7 @@ export const updateAppointmentRequestStatus = async (req, res) => {
 
     // If approved, create the actual appointment
     if (status === 'approved') {
-      const { appointmentName, date, timeRange, reason, withWhom } = appointmentRequest;
+      const { appointmentName, date, timeRange, reason, withWhom, phoneNum } = appointmentRequest;
 
       // Ensure no appointment overlaps
       await checkAppointmentOverlap(date, timeRange.startTime, timeRange.endTime);
@@ -456,6 +458,7 @@ export const updateAppointmentRequestStatus = async (req, res) => {
         reason,
         withWhom,
         appointmentNumber,
+        phoneNum,
       });
 
       await newAppointment.save();

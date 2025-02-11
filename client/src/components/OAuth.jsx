@@ -13,18 +13,17 @@ export default function OAuth() {
         const provider = new GoogleAuthProvider();
         const auth = getAuth(app);
         const result = await signInWithPopup(auth, provider);
-        const res = await fetch('/api/auth/google', {
-            method: 'POST',
+        const res = await axios.post('http://localhost:3000/api/auth/google', {
+            name: result.user.displayName,
+            email: result.user.email,
+            photo: result.user.photoURL,
+          }, {
             headers: {
-                'Content-Type': 'application/json',
+              'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                name: result.user.displayName,
-                email: result.user.email,
-                photo: result.user.photoURL,
-            }),
-        });
-        const data = await res.json();
+            withCredentials: true, // to include cookies if necessary
+          });
+        const data = await res.data;
         dispatch(signInSuccess(data));
         navigate('/');
         }catch (error) {

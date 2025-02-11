@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import logo from '../components/logo1.png'; // Import your logo
+import axios from 'axios'; // Ensure you have axios imported
 
 export default function ManageUsers() {
   const [users, setUsers] = useState([]);
@@ -11,15 +12,16 @@ export default function ManageUsers() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await fetch('/api/user/all', {
-          method: 'GET',
+        const res = await axios.get('http://localhost:3000/api/user/all', {
           headers: {
             'Content-Type': 'application/json',
           },
-          credentials: 'include', // to include cookies if necessary
+          withCredentials: true, // to include cookies if necessary
         });
-        const data = await res.json();
-        if (res.ok) {
+  
+        const data = res.data;  // Axios automatically parses the response data
+  
+        if (res.status === 200) {
           setUsers(data);
         } else {
           setError(data.message || 'Failed to fetch users');
@@ -30,24 +32,25 @@ export default function ManageUsers() {
         setLoading(false);
       }
     };
-
+  
     fetchUsers();
   }, []);
-
-  // Function to delete user
+  
   const deleteUser = async (userId) => {
     const confirmed = window.confirm('Are you sure you want to delete this user?');
     if (!confirmed) return;
-
+  
     try {
-      const res = await fetch(`/api/user/delete/${userId}`, {
-        method: 'DELETE',
+      const res = await axios.delete(`http://localhost:3000/api/user/delete/${userId}`, {
         headers: {
           'Content-Type': 'application/json',
         },
+        withCredentials: true, // to include cookies if necessary
       });
-      const data = await res.json();
-      if (res.ok) {
+  
+      const data = res.data;  // Axios automatically parses the response data
+  
+      if (res.status === 200) {
         setUsers((prevUsers) => prevUsers.filter((user) => user._id !== userId));
       } else {
         alert(data.message || 'Failed to delete user');

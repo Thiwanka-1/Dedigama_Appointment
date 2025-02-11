@@ -5,6 +5,7 @@ import { app } from '../firebase';
 import { updateUserStart, updateUserSuccess, updateUserFailure, deleteUserStart, deleteUserSuccess, deleteUserFailure, signOut } from '../redux/user/userSlice';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
+import axios from 'axios'; // Ensure you have axios imported
 
 export default function AdminProfile() {
   const dispatch = useDispatch();
@@ -78,25 +79,26 @@ export default function AdminProfile() {
       setErrors(validationErrors);
       return;
     }
-
+  
     try {
       dispatch(updateUserStart());
-      const res = await fetch(`/api/user/update/${currentUser._id}`, {
-        method: 'POST',
+      const res = await axios.post(`http://localhost:3000/api/user/update/${currentUser._id}`, formData, {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        withCredentials: true, // to include cookies if necessary
       });
-      const data = await res.json();
+  
+      const data = res.data;
+  
       if (data.success === false) {
         dispatch(updateUserFailure(data));
         return;
       }
-
+  
       dispatch(updateUserSuccess(data));
       setUpdateSuccess(true);
-
+  
       // Redirect based on user role
       if (data.isAdmin) {
         navigate('/admin-profile');
@@ -107,14 +109,16 @@ export default function AdminProfile() {
       dispatch(updateUserFailure(error));
     }
   };
-
+  
   const handleDeleteAccount = async () => {
     try {
       dispatch(deleteUserStart());
-      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
-        method: 'DELETE',
+      const res = await axios.delete(`http://localhost:3000/api/user/delete/${currentUser._id}`, {
+        withCredentials: true, // to include cookies if necessary
       });
-      const data = await res.json();
+  
+      const data = res.data;
+  
       if (data.success === false) {
         dispatch(deleteUserFailure(data));
         return;
@@ -124,10 +128,12 @@ export default function AdminProfile() {
       dispatch(deleteUserFailure(error));
     }
   };
-
+  
   const handleSignOut = async () => {
     try {
-      await fetch('/api/auth/signout');
+      await axios.get('http://localhost:3000/api/auth/signout', {
+        withCredentials: true, // to include cookies if necessary
+      });
       dispatch(signOut());
     } catch (error) {
       console.log(error);

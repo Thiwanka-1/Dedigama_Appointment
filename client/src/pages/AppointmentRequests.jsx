@@ -19,7 +19,7 @@ const AppointmentRequests = () => {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const response = await axios.get('/api/appointments/requests');
+        const response = await axios.get('http://localhost:3000/api/appointments/requests');
         setAppointments(response.data);
       } catch (error) {
         console.error("Error fetching appointment requests", error);
@@ -31,7 +31,7 @@ const AppointmentRequests = () => {
   // Handle appointment approval or rejection
   const handleStatusChange = async (id, status) => {
     try {
-      const response = await axios.put(`/api/appointments/request/${id}/status`, { status });
+      const response = await axios.put(`http://localhost:3000/api/appointments/request/${id}/status`, { status });
       alert(response.data.message);
       setAppointments(appointments.map(appointment => 
         appointment._id === id ? { ...appointment, status: status } : appointment
@@ -53,6 +53,7 @@ const AppointmentRequests = () => {
         formatDate(req.date), // Use the custom date formatting
         `${req.timeRange.startTime} - ${req.timeRange.endTime}`, 
         req.reason, 
+        req.phoneNum,
         req.status
       ]),
     });
@@ -81,6 +82,7 @@ const AppointmentRequests = () => {
               <th className="px-6 py-3 border-b">Date</th>
               <th className="px-6 py-3 border-b">Time Range</th>
               <th className="px-6 py-3 border-b">Reason</th>
+              <th className="px-6 py-3 border-b">Phone</th>
               <th className="px-6 py-3 border-b">Status</th>
               <th className="px-6 py-3 border-b">Actions</th>
             </tr>
@@ -93,6 +95,7 @@ const AppointmentRequests = () => {
                   <td className="px-6 py-4">{formatDate(appointment.date)}</td> 
                   <td className="px-6 py-4">{appointment.timeRange.startTime} - {appointment.timeRange.endTime}</td>
                   <td className="px-6 py-4">{appointment.reason}</td>
+                  <td className="px-6 py-4">{appointment.phoneNum}</td>
                   <td className="px-6 py-4">
                     <span className={`px-3 py-1 rounded-full text-white ${appointment.status === 'approved' ? 'bg-green-500' : appointment.status === 'rejected' ? 'bg-red-500' : 'bg-yellow-500'}`}>
                       {appointment.status}

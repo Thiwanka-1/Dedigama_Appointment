@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import OAuth from '../components/OAuth';
+import axios from 'axios'; // Ensure you have axios imported
 
 export default function SignUp() {
   const [formData, setFormData] = useState({ username: '', email: '', password: '' });
@@ -37,28 +38,35 @@ export default function SignUp() {
       setErrors(validationErrors);
       return;
     }
-
+  
     try {
       setLoading(true);
       setErrors({});
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
+  
+      // Replace fetch with axios
+      const response = await axios.post('http://localhost:3000/api/auth/signup', formData, {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        withCredentials: true,  // Include cookies (JWT token) with the request
       });
-      const data = await res.json();
+  
+      const data = response.data;  // Axios automatically parses the response data
+  
       console.log(data);
+  
       setLoading(false);
+      
       if (data.success === false) {
         setErrors({ server: 'Sign up failed. Please try again.' });
         return;
       }
+  
       navigate('/sign-in');
     } catch (error) {
       setLoading(false);
       setErrors({ server: 'Something went wrong. Please try again.' });
+      console.error("Error during sign up:", error);  // Log error for debugging
     }
   };
 

@@ -12,7 +12,7 @@ const AppointmentDetails = () => {
   useEffect(() => {
     const fetchAppointment = async () => {
       try {
-        const response = await axios.get(`http://localhost:3000/api/appointments/${id}`);
+        const response = await axios.get(`https://dedigama-appointment.vercel.app/api/appointments/${id}`);
         setAppointment(response.data);
       } catch (error) {
         setError('Error fetching appointment details');
@@ -30,7 +30,7 @@ const AppointmentDetails = () => {
     const confirmDelete = window.confirm('Are you sure you want to delete this appointment?');
     if (confirmDelete) {
       try {
-        await axios.delete(`http://localhost:3000/api/appointments/delete/${id}`);
+        await axios.delete(`https://dedigama-appointment.vercel.app/api/appointments/delete/${id}`);
         navigate('/appointments');
       } catch (error) {
         setError('Error deleting appointment');

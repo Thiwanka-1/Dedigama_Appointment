@@ -6,13 +6,11 @@ const AppointmentRequestPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Extract query params from the URL
   const queryParams = new URLSearchParams(location.search);
   const date = queryParams.get('date');
   const startTimeFromUrl = queryParams.get('startTime');
   const endTimeFromUrl = queryParams.get('endTime');
 
-  // State management
   const [appointmentName, setAppointmentName] = useState('');
   const [selectedStartTime, setSelectedStartTime] = useState(startTimeFromUrl || '');
   const [selectedEndTime, setSelectedEndTime] = useState(endTimeFromUrl || '');
@@ -20,12 +18,11 @@ const AppointmentRequestPage = () => {
   const [requestedBy, setRequestedBy] = useState('');
   const [message, setMessage] = useState({ text: '', type: '' });
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(''); // Error message state
+  const [isTimeValid, setIsTimeValid] = useState(true); // Track if time is valid
 
-  // User authentication: Retrieve token from localStorage for authentication
-  const token = localStorage.getItem('access_token'); 
-
-  // User authentication: Replace this with actual method to get userId
-  const userId = localStorage.getItem('userId') || 'someUserId'; 
+  const token = localStorage.getItem('access_token');
+  const userId = localStorage.getItem('userId') || 'someUserId';
 
   const reasonOptions = [
     'Visitors', 'Head Office Interview', 'Branch Interview', 'Manager Interview',
@@ -35,9 +32,29 @@ const AppointmentRequestPage = () => {
     'Property Meeting', 'Finance Meeting', 'RM Meeting', 'ARM Meeting'
   ];
 
+  // Validate time range function
+  const validateTimeRange = () => {
+    if (selectedStartTime && selectedEndTime) {
+      const start = new Date(`1970-01-01T${selectedStartTime}:00`);
+      const end = new Date(`1970-01-01T${selectedEndTime}:00`);
+      if (start >= end) {
+        setIsTimeValid(false);
+        setErrorMessage('End time must be later than start time.');
+      } else {
+        setIsTimeValid(true);
+        setErrorMessage('');
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('User ID before submitting:', userId);  // Log to check the userId value
+
+    // Only submit if the time is valid
+    if (!isTimeValid) {
+      setMessage({ text: 'Please select a valid time range.', type: 'error' });
+      return;
+    }
 
     const appointmentData = {
       appointmentName,
@@ -48,10 +65,8 @@ const AppointmentRequestPage = () => {
       },
       reason,
       withWhom: requestedBy,
-      userId,  // Add userId to the request
+      userId,
     };
-
-    console.log(appointmentData); // Debugging purpose
 
     try {
       const response = await axios.post('/api/appointments/request', appointmentData);
@@ -63,10 +78,9 @@ const AppointmentRequestPage = () => {
         setMessage({ text: 'Something went wrong. Please try again later.', type: 'error' });
       }
     } catch (error) {
-      console.error('Error submitting appointment request:', error.response.data);  // Log detailed error
+      console.error('Error submitting appointment request:', error.response.data);
       setMessage({ text: 'Error occurred during submission. Please try again later.', type: 'error' });
     }
-    
   };
 
   const handleModalClose = () => {
@@ -74,9 +88,13 @@ const AppointmentRequestPage = () => {
   };
 
   const handleConfirmRedirect = () => {
-    // Redirect to the availability checking page
     navigate('/slots');
   };
+
+  useEffect(() => {
+    // Re-run the validation whenever start or end time changes
+    validateTimeRange();
+  }, [selectedStartTime, selectedEndTime]);
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50">
@@ -86,6 +104,12 @@ const AppointmentRequestPage = () => {
         {message.text && (
           <div className={`mb-6 text-center ${message.type === 'success' ? 'text-green-600' : 'text-red-600'} font-semibold`}>
             {message.text}
+          </div>
+        )}
+
+        {errorMessage && !isTimeValid && (
+          <div className="mb-6 text-center text-red-600 font-semibold">
+            {errorMessage}
           </div>
         )}
 
@@ -170,13 +194,13 @@ const AppointmentRequestPage = () => {
           <button
             type="submit"
             className="w-full py-3 px-4 rounded-md text-white bg-blue-600 hover:bg-blue-700"
+            disabled={!isTimeValid}  // Disable the button if time is not valid
           >
             Submit Request
           </button>
         </form>
       </div>
 
-      {/* Success Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-xl w-96">

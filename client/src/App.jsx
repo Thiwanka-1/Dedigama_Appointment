@@ -31,23 +31,21 @@ export default function App() {
 
       <Route element={<PrivateRoute />}>
         <Route path = "/profile" element = {<Profile />} />
-
-        <Route path="/appointments" element={<AppointmentsList />} />
-        <Route path="/appointments/new" element={<AppointmentForm />} />
-        <Route path="/appointments/:id" element={<AppointmentDetails />} />
-        <Route path="/appointment-update/:id" element={<AppointmentUpdate />} />
-        <Route path="/view" element={<ViewAppointments />} />
-        
         <Route path="/user-req" element={<UserAppointments/>} />
         <Route path="/slots" element={<AvailableSlotsPage />} />
         <Route path="/appointment-request" element={<AppointmentRequestPage />} />
-        <Route path="/req" element={<AppointmentRequests />} />
 
       </Route>
 
       <Route element={<PrivateRoute adminOnly={true} />}>
         <Route path="/manage-users" element={<ManageUsers />} />
         <Route path='/admin-profile' element={<AdminProfile />} />
+        <Route path="/appointments" element={<AppointmentsList />} />
+        <Route path="/appointments/new" element={<AppointmentForm />} />
+        <Route path="/appointments/:id" element={<AppointmentDetails />} />
+        <Route path="/appointment-update/:id" element={<AppointmentUpdate />} />
+        <Route path="/view" element={<ViewAppointments />} />
+        <Route path="/req" element={<AppointmentRequests />} />
 
       </Route>
     </Routes>

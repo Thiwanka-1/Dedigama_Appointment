@@ -21,7 +21,7 @@ app.use(cookieParser());   // Parse cookies in incoming requests
 
 // Configure CORS
 app.use(cors({
-  origin: 'http://localhost:5173',  // Allow requests from your frontend domain
+  origin: 'https://dedigama-appointment-hauo.vercel.app/',  // Allow requests from your frontend domain
   credentials: true,                // Allow credentials like cookies, headers
 }));
 

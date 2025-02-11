@@ -38,24 +38,24 @@ export default function SignUp() {
       setErrors(validationErrors);
       return;
     }
-  
+
     try {
       setLoading(true);
       setErrors({});
-      const res = await axios.post('https://dedigama-appointment.vercel.app/api/auth/signup', formData, {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify(formData),
       });
-      const data = res.data;
+      const data = await res.json();
       console.log(data);
       setLoading(false);
-  
       if (data.success === false) {
         setErrors({ server: 'Sign up failed. Please try again.' });
         return;
       }
-  
       navigate('/sign-in');
     } catch (error) {
       setLoading(false);

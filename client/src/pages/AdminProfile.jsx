@@ -79,23 +79,25 @@ export default function AdminProfile() {
       setErrors(validationErrors);
       return;
     }
-  
+
     try {
       dispatch(updateUserStart());
-      const res = await axios.post(
-        `https://dedigama-appointment.vercel.app/api/user/update/${currentUser._id}`,
-        formData,
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-      const data = res.data;
+      const res = await fetch(`/api/user/update/${currentUser._id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
       if (data.success === false) {
         dispatch(updateUserFailure(data));
         return;
       }
-  
+
       dispatch(updateUserSuccess(data));
       setUpdateSuccess(true);
-  
+
       // Redirect based on user role
       if (data.isAdmin) {
         navigate('/admin-profile');
@@ -106,14 +108,14 @@ export default function AdminProfile() {
       dispatch(updateUserFailure(error));
     }
   };
-  
+
   const handleDeleteAccount = async () => {
     try {
       dispatch(deleteUserStart());
-      const res = await axios.delete(
-        `https://dedigama-appointment.vercel.app/api/user/delete/${currentUser._id}`
-      );
-      const data = res.data;
+      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
       if (data.success === false) {
         dispatch(deleteUserFailure(data));
         return;
@@ -123,10 +125,10 @@ export default function AdminProfile() {
       dispatch(deleteUserFailure(error));
     }
   };
-  
+
   const handleSignOut = async () => {
     try {
-      await axios.post('https://dedigama-appointment.vercel.app/api/auth/signout');
+      await fetch('/api/auth/signout');
       dispatch(signOut());
     } catch (error) {
       console.log(error);

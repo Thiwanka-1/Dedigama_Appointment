@@ -78,36 +78,36 @@ export default function Profile() {
       setErrors(validationErrors);
       return;
     }
-  
+
     try {
       dispatch(updateUserStart());
-      const res = await axios.post(`https://dedigama-appointment.vercel.app/api/user/update/${currentUser._id}`, formData, {
+      const res = await fetch(`/api/user/update/${currentUser._id}`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify(formData),
       });
-      const data = res.data;
+      const data = await res.json();
       if (data.success === false) {
         dispatch(updateUserFailure(data));
         return;
       }
-  
+
       dispatch(updateUserSuccess(data));
       setUpdateSuccess(true);
     } catch (error) {
       dispatch(updateUserFailure(error));
     }
   };
-  
+
   const handleDeleteAccount = async () => {
     try {
       dispatch(deleteUserStart());
-      const res = await axios.delete(`https://dedigama-appointment.vercel.app/api/user/delete/${currentUser._id}`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+        method: 'DELETE',
       });
-      const data = res.data;
+      const data = await res.json();
       if (data.success === false) {
         dispatch(deleteUserFailure(data));
         return;
@@ -117,10 +117,10 @@ export default function Profile() {
       dispatch(deleteUserFailure(error));
     }
   };
-  
+
   const handleSignOut = async () => {
     try {
-      await axios.post('https://dedigama-appointment.vercel.app/api/auth/signout');
+      await fetch('/api/auth/signout');
       dispatch(signOut());
     } catch (error) {
       console.log(error);

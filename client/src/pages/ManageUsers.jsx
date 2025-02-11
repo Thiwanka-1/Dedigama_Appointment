@@ -12,37 +12,46 @@ export default function ManageUsers() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await axios.get('https://dedigama-appointment.vercel.app/api/user/all', {
+        const res = await fetch('/api/user/all', {
+          method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
-          withCredentials: true, // for including cookies if necessary
+          credentials: 'include', // to include cookies if necessary
         });
-        setUsers(res.data);
+        const data = await res.json();
+        if (res.ok) {
+          setUsers(data);
+        } else {
+          setError(data.message || 'Failed to fetch users');
+        }
         setLoading(false);
       } catch (err) {
         setError('An error occurred while fetching users');
         setLoading(false);
       }
     };
-  
+
     fetchUsers();
   }, []);
-  
+
+  // Function to delete user
   const deleteUser = async (userId) => {
     const confirmed = window.confirm('Are you sure you want to delete this user?');
     if (!confirmed) return;
-  
+
     try {
-      const res = await axios.delete(`https://dedigama-appointment.vercel.app/api/user/delete/${userId}`, {
+      const res = await fetch(`/api/user/delete/${userId}`, {
+        method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
       });
-      if (res.status === 200) {
+      const data = await res.json();
+      if (res.ok) {
         setUsers((prevUsers) => prevUsers.filter((user) => user._id !== userId));
       } else {
-        alert(res.data.message || 'Failed to delete user');
+        alert(data.message || 'Failed to delete user');
       }
     } catch (err) {
       console.error('Error deleting user:', err);

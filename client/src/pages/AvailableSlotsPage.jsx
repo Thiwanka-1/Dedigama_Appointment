@@ -19,7 +19,7 @@ const AvailableSlotsPage = () => {
     setErrorMessage(''); // Reset any previous error message
 
     try {
-      const response = await axios.get(`https://dedigama-appointment.vercel.app/api/appointments/check-availability?date=${selectedDate}`);
+      const response = await axios.get(`http://localhost:3000/api/appointments/check-availability?date=${selectedDate}`);
       if (response.data.success && response.data.availableSlots.length > 0) {
         setAvailableSlots(response.data.availableSlots);
       } else {

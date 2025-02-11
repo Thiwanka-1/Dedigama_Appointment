@@ -14,7 +14,7 @@ const AppointmentsList = () => {
   // Fetch all appointments from the server
   const fetchAppointments = async () => {
     try {
-      const response = await axios.get('https://dedigama-appointment.vercel.app/api/appointments/get');
+      const response = await axios.get('http://localhost:3000/api/appointments/get');
       const sortedAppointments = response.data.sort((a, b) => a.appointmentNumber - b.appointmentNumber);
       setAppointments(sortedAppointments);
       setFilteredAppointments(sortedAppointments);
@@ -58,7 +58,7 @@ const AppointmentsList = () => {
     const confirmDelete = window.confirm('Are you sure you want to delete this appointment?');
     if (confirmDelete) {
       try {
-        await axios.delete(`https://dedigama-appointment.vercel.app/api/appointments/delete/${id}`);
+        await axios.delete(`http://localhost:3000/api/appointments/delete/${id}`);
         setAppointments(appointments.filter((appointment) => appointment._id !== id));
         setFilteredAppointments(filteredAppointments.filter((appointment) => appointment._id !== id));
       } catch (error) {

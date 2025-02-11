@@ -30,7 +30,7 @@ const AppointmentForm = () => {
 
   const fetchAppointments = async () => {
     try {
-      const response = await axios.get('https://dedigama-appointment.vercel.app/api/appointments/get');
+      const response = await axios.get('http://localhost:3000/api/appointments/get');
       setAppointments(response.data);
     } catch (error) {
       console.error("Error fetching appointments:", error);
@@ -74,7 +74,7 @@ const AppointmentForm = () => {
 
     // Proceed with submitting appointment
     try {
-      const response = await axios.post('https://dedigama-appointment.vercel.app/api/appointments/add', appointmentData);
+      const response = await axios.post('http://localhost:3000/api/appointments/add', appointmentData);
 
       // Handle success
       setAppointmentDetails(response.data.appointment);

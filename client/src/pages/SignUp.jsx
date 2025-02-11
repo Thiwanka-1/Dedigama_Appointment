@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import OAuth from '../components/OAuth';
+import axios from 'axios';
 
 export default function SignUp() {
   const [formData, setFormData] = useState({ username: '', email: '', password: '' });
@@ -37,24 +38,24 @@ export default function SignUp() {
       setErrors(validationErrors);
       return;
     }
-
+  
     try {
       setLoading(true);
       setErrors({});
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
+      const res = await axios.post('https://dedigama-appointment.vercel.app/api/auth/signup', formData, {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
       });
-      const data = await res.json();
+      const data = res.data;
       console.log(data);
       setLoading(false);
+  
       if (data.success === false) {
         setErrors({ server: 'Sign up failed. Please try again.' });
         return;
       }
+  
       navigate('/sign-in');
     } catch (error) {
       setLoading(false);

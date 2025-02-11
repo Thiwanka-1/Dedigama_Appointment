@@ -11,7 +11,7 @@ const UserAppointments = () => {
   // Function to fetch appointments for the current user
   const fetchAppointments = async () => {
     try {
-      const response = await axios.get('/api/appointments/user');
+      const response = await axios.get('https://dedigama-appointment.vercel.app/api/appointments/user');
       setAppointments(response.data);
     } catch (err) {
       setError('Error fetching appointments');
@@ -23,7 +23,7 @@ const UserAppointments = () => {
   // Function to cancel an appointment request
   const cancelAppointment = async (id) => {
     try {
-      await axios.delete(`/api/appointments/cancel/${id}`);
+      await axios.delete(`https://dedigama-appointment.vercel.app/api/appointments/cancel/${id}`);
       setAppointments(appointments.filter((appointment) => appointment._id !== id)); // Update state to reflect cancellation
     } catch (err) {
       setError('Error cancelling appointment');
@@ -59,7 +59,7 @@ const deleteRejectedAppointments = () => {
         now - new Date(appointment.date).getTime() > 8640000000000 // 24 hours in ms
       ) {
         // Delete from API
-        axios.delete(`/api/appointments/req-delete/${appointment._id}`)
+        axios.delete(`https://dedigama-appointment.vercel.app/api/appointments/req-delete/${appointment._id}`)
           .then(() => {
             // Ensure deletion is reflected in the state
             setAppointments(prevAppointments =>

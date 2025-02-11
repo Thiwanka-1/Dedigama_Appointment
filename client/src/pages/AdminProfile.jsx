@@ -5,6 +5,7 @@ import { app } from '../firebase';
 import { updateUserStart, updateUserSuccess, updateUserFailure, deleteUserStart, deleteUserSuccess, deleteUserFailure, signOut } from '../redux/user/userSlice';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
+import axios from 'axios';
 
 export default function AdminProfile() {
   const dispatch = useDispatch();
@@ -78,25 +79,23 @@ export default function AdminProfile() {
       setErrors(validationErrors);
       return;
     }
-
+  
     try {
       dispatch(updateUserStart());
-      const res = await fetch(`/api/user/update/${currentUser._id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
+      const res = await axios.post(
+        `https://dedigama-appointment.vercel.app/api/user/update/${currentUser._id}`,
+        formData,
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+      const data = res.data;
       if (data.success === false) {
         dispatch(updateUserFailure(data));
         return;
       }
-
+  
       dispatch(updateUserSuccess(data));
       setUpdateSuccess(true);
-
+  
       // Redirect based on user role
       if (data.isAdmin) {
         navigate('/admin-profile');
@@ -107,14 +106,14 @@ export default function AdminProfile() {
       dispatch(updateUserFailure(error));
     }
   };
-
+  
   const handleDeleteAccount = async () => {
     try {
       dispatch(deleteUserStart());
-      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
-        method: 'DELETE',
-      });
-      const data = await res.json();
+      const res = await axios.delete(
+        `https://dedigama-appointment.vercel.app/api/user/delete/${currentUser._id}`
+      );
+      const data = res.data;
       if (data.success === false) {
         dispatch(deleteUserFailure(data));
         return;
@@ -124,10 +123,10 @@ export default function AdminProfile() {
       dispatch(deleteUserFailure(error));
     }
   };
-
+  
   const handleSignOut = async () => {
     try {
-      await fetch('/api/auth/signout');
+      await axios.post('https://dedigama-appointment.vercel.app/api/auth/signout');
       dispatch(signOut());
     } catch (error) {
       console.log(error);

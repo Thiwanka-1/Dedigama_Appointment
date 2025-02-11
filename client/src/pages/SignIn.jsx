@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { signInFailure, signInStart, signInSuccess } from '../redux/user/userSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import OAuth from '../components/OAuth';
+import axios from 'axios';
+
 
 export default function SignIn() {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -37,25 +39,23 @@ export default function SignIn() {
       setErrors(validationErrors);
       return;
     }
-
+  
     try {
       dispatch(signInStart());
-      const res = await fetch('/api/auth/signin', {
-        method: 'POST',
+      const res = await axios.post('https://dedigama-appointment.vercel.app/api/auth/signin', formData, {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
       });
-      const data = await res.json();
-
+      const data = res.data;
+  
       if (data.success === false) {
         dispatch(signInFailure(data));
         return;
       }
-
+  
       dispatch(signInSuccess(data));
-
+  
       if (data.role === 'admin') {
         navigate('/admin-profile');
       } else {

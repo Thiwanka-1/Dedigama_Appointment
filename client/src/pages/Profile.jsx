@@ -4,6 +4,8 @@ import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/
 import { app } from '../firebase';
 import { updateUserStart, updateUserSuccess, updateUserFailure, deleteUserStart, deleteUserSuccess, deleteUserFailure, signOut } from '../redux/user/userSlice';
 import Sidebar from '../components/Sidebar';
+import axios from 'axios';
+
 
 export default function Profile() {
   const dispatch = useDispatch();
@@ -76,36 +78,36 @@ export default function Profile() {
       setErrors(validationErrors);
       return;
     }
-
+  
     try {
       dispatch(updateUserStart());
-      const res = await fetch(`/api/user/update/${currentUser._id}`, {
-        method: 'POST',
+      const res = await axios.post(`https://dedigama-appointment.vercel.app/api/user/update/${currentUser._id}`, formData, {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
       });
-      const data = await res.json();
+      const data = res.data;
       if (data.success === false) {
         dispatch(updateUserFailure(data));
         return;
       }
-
+  
       dispatch(updateUserSuccess(data));
       setUpdateSuccess(true);
     } catch (error) {
       dispatch(updateUserFailure(error));
     }
   };
-
+  
   const handleDeleteAccount = async () => {
     try {
       dispatch(deleteUserStart());
-      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
-        method: 'DELETE',
+      const res = await axios.delete(`https://dedigama-appointment.vercel.app/api/user/delete/${currentUser._id}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
-      const data = await res.json();
+      const data = res.data;
       if (data.success === false) {
         dispatch(deleteUserFailure(data));
         return;
@@ -115,10 +117,10 @@ export default function Profile() {
       dispatch(deleteUserFailure(error));
     }
   };
-
+  
   const handleSignOut = async () => {
     try {
-      await fetch('/api/auth/signout');
+      await axios.post('https://dedigama-appointment.vercel.app/api/auth/signout');
       dispatch(signOut());
     } catch (error) {
       console.log(error);

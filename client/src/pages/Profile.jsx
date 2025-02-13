@@ -80,7 +80,7 @@ export default function Profile() {
   
     try {
       dispatch(updateUserStart());
-      const res = await axios.post(`https://dedigama-appointment.vercel.app/api/user/update/${currentUser._id}`, formData, {
+      const res = await axios.post(`http://localhost:3000/api/user/update/${currentUser._id}`, formData, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -104,7 +104,7 @@ export default function Profile() {
   const handleDeleteAccount = async () => {
     try {
       dispatch(deleteUserStart());
-      const res = await axios.delete(`https://dedigama-appointment.vercel.app/api/user/delete/${currentUser._id}`, {
+      const res = await axios.delete(`http://localhost:3000/api/user/delete/${currentUser._id}`, {
         withCredentials: true, // to include cookies if necessary
       });
   
@@ -122,7 +122,7 @@ export default function Profile() {
   
   const handleSignOut = async () => {
     try {
-      await axios.get('https://dedigama-appointment.vercel.app/api/auth/signout', {}, {
+      await axios.get('http://localhost:3000/api/auth/signout', {}, {
         withCredentials: true, // to include cookies if necessary
       });
       dispatch(signOut());

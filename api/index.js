@@ -21,17 +21,9 @@ app.use(cookieParser());   // Parse cookies in incoming requests
 
 // Configure CORS
 app.use(cors({
-  origin: ['https://dedigama-appointment.netlify.app'], // Array of accepted origins
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Add other allowed methods as needed
-  allowedHeaders: ['X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'],
-  credentials: true,  // Allow cookies if necessary
+  origin: process.env.FRONTEND_URL,  // Allow requests from your frontend domain
+  credentials: true,                // Allow credentials like cookies, headers
 }));
-
-app.use(cors({
-  origin: '*',  // Allow all origins (for debugging purposes)
-  credentials: true,
-}));
-
 
 // MongoDB connection using Mongoose directly
 mongoose.connect(process.env.MONGO, {
@@ -45,6 +37,7 @@ mongoose.connect(process.env.MONGO, {
   console.error('MongoDB connection error:', err);
   process.exit(1); // Exit the process if MongoDB connection fails
 });
+
 // Routes
 app.use("/api/user", userRoutes);   // User management routes
 app.use("/api/auth", authRoutes);   // Authentication routes

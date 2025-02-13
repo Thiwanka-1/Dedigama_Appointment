@@ -23,7 +23,7 @@ app.use(cookieParser());   // Parse cookies in incoming requests
 app.use(cors({
   origin: ['https://dedigama-appointment.netlify.app'], // Array of accepted origins
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Add other allowed methods as needed
-  allowedHeaders: ['Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-client-key, x-client-token, x-client-secret, Authorization'],
+  allowedHeaders: ['X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'],
   credentials: true,  // Allow cookies if necessary
 }));
 

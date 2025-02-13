@@ -13,7 +13,7 @@ export default function OAuth() {
         const provider = new GoogleAuthProvider();
         const auth = getAuth(app);
         const result = await signInWithPopup(auth, provider);
-        const res = await axios.post('http://localhost:3000/api/auth/google', {
+        const res = await axios.post('https://dedigama-appointment.vercel.app//api/auth/google', {
             name: result.user.displayName,
             email: result.user.email,
             photo: result.user.photoURL,

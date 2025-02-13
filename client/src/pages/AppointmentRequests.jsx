@@ -19,7 +19,7 @@ const AppointmentRequests = () => {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/appointments/requests');
+        const response = await axios.get('https://dedigama-appointment.vercel.app//api/appointments/requests');
         setAppointments(response.data);
       } catch (error) {
         console.error("Error fetching appointment requests", error);
@@ -31,7 +31,7 @@ const AppointmentRequests = () => {
   // Handle appointment approval or rejection
   const handleStatusChange = async (id, status) => {
     try {
-      const response = await axios.put(`http://localhost:3000/api/appointments/request/${id}/status`, { status });
+      const response = await axios.put(`https://dedigama-appointment.vercel.app//api/appointments/request/${id}/status`, { status });
       alert(response.data.message);
       setAppointments(appointments.map(appointment => 
         appointment._id === id ? { ...appointment, status: status } : appointment

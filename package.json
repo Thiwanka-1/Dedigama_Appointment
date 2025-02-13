@@ -28,5 +28,8 @@
     "nodemailer": "^6.10.0",
     "nodemon": "^3.1.4",
     "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
   }
 }

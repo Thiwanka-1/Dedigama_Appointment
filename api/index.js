@@ -12,16 +12,10 @@ import appointmentRoutes from './routes/appointment.routes.js';  // New import
 // Load environment variables
 dotenv.config();
 
-const __dirname = path.resolve();
 
 // Initialize the Express app
 const app = express();
 
-app.use(express.static(path.join(__dirname, '/client/dist')));
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client','dist','index.html'));
-});
 // Middleware
 app.use(express.json());  // Parses incoming requests with JSON payloads
 app.use(cookieParser());   // Parse cookies in incoming requests
@@ -50,6 +44,13 @@ app.use("/api/user", userRoutes);   // User management routes
 app.use("/api/auth", authRoutes);   // Authentication routes
 app.use("/api/appointments", appointmentRoutes);  // Appointment management routes
 
+const __dirname = path.resolve();
+
+app.use(express.static(path.join(__dirname, '/client/dist')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client','dist','index.html'));
+});
 
 // Global error handling middleware
 app.use((err, req, res, next) => {

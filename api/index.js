@@ -22,8 +22,13 @@ app.use(cookieParser());   // Parse cookies in incoming requests
 // Configure CORS
 app.use(cors({
   origin: process.env.FRONTEND_URL,  // Allow requests from your frontend domain
-  credentials: true,                // Allow credentials like cookies, headers
+  credentials: true,                 // Allow credentials like cookies, headers
+  methods: ['GET', 'POST', 'OPTIONS'], // Allow the necessary methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allow necessary headers
 }));
+
+app.options('*', cors());
+
 
 // MongoDB connection using Mongoose directly
 mongoose.connect(process.env.MONGO, {

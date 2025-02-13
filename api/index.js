@@ -21,13 +21,16 @@ app.use(cookieParser());   // Parse cookies in incoming requests
 
 // Configure CORS
 app.use(cors({
-  origin: process.env.FRONTEND_URL,  // Allow requests from your frontend domain
-  credentials: true,                 // Allow credentials like cookies, headers
-  methods: ['GET', 'POST', 'OPTIONS'], // Allow the necessary methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Allow necessary headers
+  origin: ['https://dedigama-appointment.netlify.app'], // Array of accepted origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Add other allowed methods as needed
+  allowedHeaders: ['Content-Type', 'Authorization'], // Add other headers as needed
+  credentials: true,  // Allow cookies if necessary
 }));
 
-app.options('*', cors());
+app.use(cors({
+  origin: '*',  // Allow all origins (for debugging purposes)
+  credentials: true,
+}));
 
 
 // MongoDB connection using Mongoose directly

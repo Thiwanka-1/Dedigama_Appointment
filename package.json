@@ -22,7 +22,6 @@
     "jsonwebtoken": "^9.0.2",
     "moment-timezone": "^0.5.47",
     "mongoose": "^8.5.3",
-    "mongoose-auto-increment": "^5.0.1",
     "mongoose-sequence": "^6.0.1",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.10.0",

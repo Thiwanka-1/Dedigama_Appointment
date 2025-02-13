@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
-
+import path from 'path';
 // Import Routes
 import userRoutes from './routes/user.route.js';
 import authRoutes from './routes/auth.route.js';
@@ -12,9 +12,16 @@ import appointmentRoutes from './routes/appointment.routes.js';  // New import
 // Load environment variables
 dotenv.config();
 
+const __dirname = path.resolve();
+
 // Initialize the Express app
 const app = express();
 
+app.use(express.static(path.join(__dirname, '/client/dist')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client','dist','index.html'));
+});
 // Middleware
 app.use(express.json());  // Parses incoming requests with JSON payloads
 app.use(cookieParser());   // Parse cookies in incoming requests

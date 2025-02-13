@@ -44,7 +44,7 @@ export default function SignUp() {
       setErrors({});
   
       // Replace fetch with axios
-      const response = await axios.post('http://localhost:3000/api/auth/signup', formData, {
+      const response = await axios.post('/api/auth/signup', formData, {
         headers: {
           'Content-Type': 'application/json',
         },

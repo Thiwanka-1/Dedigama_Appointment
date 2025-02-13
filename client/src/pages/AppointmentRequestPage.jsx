@@ -70,7 +70,7 @@ const AppointmentRequestPage = () => {
     };
 
     try {
-      const response = await axios.post('http://localhost:3000/api/appointments/request', appointmentData, {
+      const response = await axios.post('/api/appointments/request', appointmentData, {
         withCredentials: true,  // Make sure cookies (JWT) are sent
       });
             

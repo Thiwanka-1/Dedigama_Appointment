@@ -41,7 +41,7 @@ export default function SignIn() {
 
     try {
       dispatch(signInStart());
-      const res = await axios.post('http://localhost:3000/api/auth/signin', formData, {
+      const res = await axios.post('/api/auth/signin', formData, {
         withCredentials: true,
         headers: {
           'Content-Type': 'application/json',

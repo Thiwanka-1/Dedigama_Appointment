@@ -82,7 +82,7 @@ export default function AdminProfile() {
   
     try {
       dispatch(updateUserStart());
-      const res = await axios.post(`http://localhost:3000/api/user/update/${currentUser._id}`, formData, {
+      const res = await axios.post(`/api/user/update/${currentUser._id}`, formData, {
         headers: {
           'Content-Type': 'application/json',
         },
@@ -113,7 +113,7 @@ export default function AdminProfile() {
   const handleDeleteAccount = async () => {
     try {
       dispatch(deleteUserStart());
-      const res = await axios.delete(`http://localhost:3000/api/user/delete/${currentUser._id}`, {
+      const res = await axios.delete(`/api/user/delete/${currentUser._id}`, {
         withCredentials: true, // to include cookies if necessary
       });
   
@@ -131,7 +131,7 @@ export default function AdminProfile() {
   
   const handleSignOut = async () => {
     try {
-      await axios.get('http://localhost:3000/api/auth/signout', {
+      await axios.get('/api/auth/signout', {
         withCredentials: true, // to include cookies if necessary
       });
       dispatch(signOut());

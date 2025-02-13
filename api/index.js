@@ -23,7 +23,7 @@ app.use(cookieParser());   // Parse cookies in incoming requests
 app.use(cors({
   origin: ['https://dedigama-appointment.netlify.app'], // Array of accepted origins
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Add other allowed methods as needed
-  allowedHeaders: ['Content-Type', 'Authorization'], // Add other headers as needed
+  allowedHeaders: ['Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, x-client-key, x-client-token, x-client-secret, Authorization'],
   credentials: true,  // Allow cookies if necessary
 }));
 
@@ -45,7 +45,6 @@ mongoose.connect(process.env.MONGO, {
   console.error('MongoDB connection error:', err);
   process.exit(1); // Exit the process if MongoDB connection fails
 });
-
 // Routes
 app.use("/api/user", userRoutes);   // User management routes
 app.use("/api/auth", authRoutes);   // Authentication routes

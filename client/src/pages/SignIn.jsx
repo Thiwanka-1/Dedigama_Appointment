@@ -42,10 +42,11 @@ export default function SignIn() {
     try {
       dispatch(signInStart());
       const res = await axios.post('https://dedigama-appointment.vercel.app/api/auth/signin', formData, {
+        withCredentials: true,
         headers: {
           'Content-Type': 'application/json',
         },
-        withCredentials: true, // Make sure cookies (JWT) are sent
+         // Make sure cookies (JWT) are sent
       });
       const data = await res.data;
 

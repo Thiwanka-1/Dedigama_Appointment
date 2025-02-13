@@ -12,7 +12,7 @@ export default function ManageUsers() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await axios.get('https://dedigama-appointment.vercel.app//api/user/all', {
+        const res = await axios.get('https://dedigama-appointment.vercel.app/api/user/all', {
           headers: {
             'Content-Type': 'application/json',
           },
@@ -41,7 +41,7 @@ export default function ManageUsers() {
     if (!confirmed) return;
   
     try {
-      const res = await axios.delete(`https://dedigama-appointment.vercel.app//api/user/delete/${userId}`, {
+      const res = await axios.delete(`https://dedigama-appointment.vercel.app/api/user/delete/${userId}`, {
         headers: {
           'Content-Type': 'application/json',
         },

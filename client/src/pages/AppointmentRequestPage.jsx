@@ -70,7 +70,7 @@ const AppointmentRequestPage = () => {
     };
 
     try {
-      const response = await axios.post('https://dedigama-appointment.vercel.app//api/appointments/request', appointmentData, {
+      const response = await axios.post('https://dedigama-appointment.vercel.app/api/appointments/request', appointmentData, {
         withCredentials: true,  // Make sure cookies (JWT) are sent
       });
             

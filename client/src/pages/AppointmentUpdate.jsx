@@ -22,7 +22,7 @@ const AppointmentUpdate = () => {
   useEffect(() => {
     const fetchAppointment = async () => {
       try {
-        const response = await axios.get(`https://dedigama-appointment.vercel.app//api/appointments/${id}`);
+        const response = await axios.get(`https://dedigama-appointment.vercel.app/api/appointments/${id}`);
         const data = response.data;
 
         // Convert the date into the correct format (yyyy-MM-dd)
@@ -55,7 +55,7 @@ const AppointmentUpdate = () => {
       };
 
       // Make the API call to update the appointment
-      await axios.put(`https://dedigama-appointment.vercel.app//api/appointments/update/${id}`, updatedAppointment);
+      await axios.put(`https://dedigama-appointment.vercel.app/api/appointments/update/${id}`, updatedAppointment);
 
       // Navigate to the updated appointment's page
       navigate(`/appointments/${id}`);

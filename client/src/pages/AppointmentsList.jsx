@@ -15,13 +15,28 @@ const AppointmentsList = () => {
   const fetchAppointments = async () => {
     try {
       const response = await axios.get('/api/appointments/get');
-      const sortedAppointments = response.data.sort((a, b) => a.appointmentNumber - b.appointmentNumber);
+  
+      const sortedAppointments = response.data.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+  
+        if (dateA.getTime() !== dateB.getTime()) {
+          return dateA - dateB; // Sort by date first
+        }
+  
+        const timeA = a.timeRange ? a.timeRange.startTime : "00:00";
+        const timeB = b.timeRange ? b.timeRange.startTime : "00:00";
+  
+        return timeA.localeCompare(timeB); // Sort by start time
+      });
+  
       setAppointments(sortedAppointments);
       setFilteredAppointments(sortedAppointments);
     } catch (error) {
       console.error("Error fetching appointments:", error);
     }
   };
+  
 
   // Call fetchAppointments when the component mounts
   useEffect(() => {
@@ -66,6 +81,21 @@ const AppointmentsList = () => {
       }
     }
   };
+
+  // Function to delete old appointments
+const handleDeleteOldAppointments = async () => {
+  const confirmDelete = window.confirm('Are you sure you want to delete all past appointments?');
+  
+  if (confirmDelete) {
+    try {
+      await axios.delete('/api/appointments/delete-old'); // Endpoint to delete past appointments
+      fetchAppointments(); // Refresh the list after deletion
+    } catch (error) {
+      console.error('Error deleting old appointments:', error);
+    }
+  }
+};
+
 
   // Navigate to update page with the appointment ID
   const handleUpdate = (appointment) => {
@@ -126,7 +156,14 @@ const AppointmentsList = () => {
 
         <AppointmentFilters setDateFilter={setDateFilter} />
         
-        <div className="mb-4">
+        <div className="mb-4 flex justify-between">
+          <button
+            onClick={handleDeleteOldAppointments}
+            className="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition-colors"
+          >
+            Delete Old Appointments
+          </button>
+
           <button
             onClick={generateReport}
             className="bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-600 transition-colors"
@@ -134,6 +171,9 @@ const AppointmentsList = () => {
             Generate Today's Report (PDF)
           </button>
         </div>
+
+
+        
 
         <div className="overflow-x-auto shadow-xl sm:rounded-lg mt-6">
           <table className="min-w-full table-auto bg-white rounded-lg shadow-lg">

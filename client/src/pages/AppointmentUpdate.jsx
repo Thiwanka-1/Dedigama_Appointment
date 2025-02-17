@@ -151,7 +151,7 @@ const AppointmentUpdate = () => {
               <option value="Head Office Interview">Head Office Interview</option>
               <option value="Branch Interview">Branch Interview</option>
               <option value="Manager Interview">Manager Interview</option>
-              <option value="Head Ofiice Staff">Head Office Staff</option>
+              <option value="Head Ofiice Staff">Head Ofiice Staff</option>
               <option value="Staff Meeting">Staff Meeting</option>
               <option value="Manager Meeting">Manager Meeting</option>
               <option value="Urgent Meeting">Urgent Meeting</option>
@@ -161,8 +161,8 @@ const AppointmentUpdate = () => {
               <option value="Hotel Meeting">Hotel Meeting</option>
               <option value="Audit Meeting">Audit Meeting</option>
               <option value="IT Meeting">IT Meeting</option>
-              <option value="Procurement Meeting">Procurement Meeting</option>
-              <option value="Jewelry Meeting">Jewelry Meeting</option>
+              <option value="Procument Meeting">Procument Meeting</option>
+              <option value="Jewelery Meeting">Jewelery Meeting</option>
               <option value="Property Meeting">Property Meeting</option>
               <option value="Finance Meeting">Finance Meeting</option>
               <option value="RM Meeting">RM Meeting</option>

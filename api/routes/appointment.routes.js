@@ -12,7 +12,9 @@ import {
   updateAppointmentRequestStatus, // Newly added function
   getUserAppointmentRequests,
   cancelAppointmentRequest,
-  deleteRejectedAppointments
+  deleteRejectedAppointments,
+  deleteOldAppointments,
+  deleteOldAppointmentRequests,
 
 } from '../controllers/appointment.controller.js';
 import { verifyToken } from '../utils/verifyUser.js';
@@ -35,10 +37,14 @@ router.get('/requests', getAppointmentRequests);
 // Route to get all appointments (optional query to filter by date) (existing functionality)
 router.get('/get', getAppointments);
 
+router.delete('/delete-old', deleteOldAppointments);
+
+router.delete('/delete-old-requests', deleteOldAppointmentRequests);
+
 // Route to get a single appointment by ID (existing functionality)
 router.get('/:id', getAppointment);
 
-// Route to update an appointment by ID (existing functionality)
+//Route to update an appointment by ID (existing functionality)
 router.put('/update/:id', updateAppointment);
 
 // Route to delete an appointment by ID (existing functionality)

@@ -15,13 +15,33 @@ const ViewAppointments = () => {
   const fetchAppointments = async () => {
     try {
       const response = await axios.get('/api/appointments/get');
-      const sortedAppointments = response.data.sort((a, b) => a.appointmentNumber - b.appointmentNumber);
+  
+      const sortedAppointments = response.data.sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+  
+        if (dateA.getTime() !== dateB.getTime()) {
+          return dateA - dateB; // Sort by date first
+        }
+  
+        const timeA = a.timeRange ? a.timeRange.startTime : "00:00";
+        const timeB = b.timeRange ? b.timeRange.startTime : "00:00";
+  
+        return timeA.localeCompare(timeB); // Sort by start time
+      });
+  
       setAppointments(sortedAppointments);
       setFilteredAppointments(sortedAppointments);
     } catch (error) {
       console.error("Error fetching appointments:", error);
     }
   };
+  
+
+  // Call fetchAppointments when the component mounts
+  useEffect(() => {
+    fetchAppointments();
+  }, []);
 
   // Call fetchAppointments when the component mounts
   useEffect(() => {

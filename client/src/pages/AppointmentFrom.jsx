@@ -39,8 +39,43 @@ const AppointmentForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Prepare appointmentData object
+  
+    // Validate that all fields are filled
+    if (!appointmentName || !date || !startTime || !endTime || !reason || !withWhom) {
+      setSubmitError('Please fill in all fields before submitting.');
+      return;
+    }
+  
+    // Convert start and end times into Date objects for proper comparison
+    const startDateTime = moment(`${date} ${startTime}`, "YYYY-MM-DD HH:mm");
+    const endDateTime = moment(`${date} ${endTime}`, "YYYY-MM-DD HH:mm");
+  
+    if (!startDateTime.isValid() || !endDateTime.isValid()) {
+      setSubmitError('Invalid date or time. Please check and try again.');
+      return;
+    }
+  
+    if (endDateTime.isBefore(startDateTime)) {
+      setSubmitError('End time must be after start time.');
+      return;
+    }
+  
+    // Check for overlapping appointments
+    const isOverlapping = appointments.some(appointment => {
+      const existingStartTime = moment(`${appointment.date} ${appointment.timeRange.startTime}`, "YYYY-MM-DD HH:mm");
+      const existingEndTime = moment(`${appointment.date} ${appointment.timeRange.endTime}`, "YYYY-MM-DD HH:mm");
+  
+      return (
+        startDateTime.isBefore(existingEndTime) && endDateTime.isAfter(existingStartTime)
+      );
+    });
+  
+    if (isOverlapping) {
+      setSubmitError('The selected time is not free. Please choose another time.');
+      return;
+    }
+  
+    // Prepare the appointment data object
     const appointmentData = {
       appointmentName,
       date,
@@ -48,42 +83,20 @@ const AppointmentForm = () => {
       reason,
       withWhom
     };
-
-    // Check if appointmentData is correctly set
-    if (!appointmentData.date || !appointmentData.timeRange.startTime || !appointmentData.timeRange.endTime) {
-      setSubmitError('Please fill in all fields before submitting.');
-      return;
-    }
-
-    // Convert the start and end time into proper date-time objects
-    const startDateTime = moment(`${appointmentData.date}T${appointmentData.timeRange.startTime}`);
-    const endDateTime = moment(`${appointmentData.date}T${appointmentData.timeRange.endTime}`);
-
-    // Check for overlapping appointment before submission
-    const isOverlapping = appointments.some(appointment => {
-      const existingStartTime = moment(appointment.date + 'T' + appointment.timeRange.startTime);
-      const existingEndTime = moment(appointment.date + 'T' + appointment.timeRange.endTime);
-
-      return (startDateTime.isBefore(existingEndTime) && endDateTime.isAfter(existingStartTime));
-    });
-
-    if (isOverlapping) {
-      setSubmitError('The selected time overlaps with an existing appointment. Please choose another time.');
-      return;
-    }
-
+  
     // Proceed with submitting appointment
     try {
       const response = await axios.post('/api/appointments/add', appointmentData);
-
+  
       // Handle success
       setAppointmentDetails(response.data.appointment);
       setShowPopup(true);
       clearForm();
       fetchAppointments();
+      setSubmitError(''); // Clear any previous errors
     } catch (error) {
       console.error("Error details:", error);
-
+  
       // Handle error
       if (error.response) {
         setSubmitError(error.response.data.message || 'There was an error adding the appointment. Please try again.');
@@ -94,6 +107,7 @@ const AppointmentForm = () => {
       }
     }
   };
+  
 
   const clearForm = () => {
     setAppointmentName('');

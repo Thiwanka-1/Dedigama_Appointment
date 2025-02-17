@@ -158,7 +158,7 @@ export default function AdminProfile() {
             src={formData.profilePicture || currentUser.profilePicture}
             alt='profile'
             className='h-24 w-24 self-center cursor-pointer rounded-full object-cover'
-            onClick={() => fileRef.current.click()}
+            //onClick={() => fileRef.current.click()}
           />
           
           <p className='text-sm self-center'>

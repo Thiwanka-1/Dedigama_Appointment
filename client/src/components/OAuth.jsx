@@ -16,7 +16,7 @@ export default function OAuth() {
         const res = await axios.post('/api/auth/google', {
             name: result.user.displayName,
             email: result.user.email,
-            photo: result.user.photoURL,
+            //photo: result.user.photoURL,
           }, {
             headers: {
               'Content-Type': 'application/json',

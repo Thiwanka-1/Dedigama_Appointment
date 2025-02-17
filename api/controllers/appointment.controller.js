@@ -424,14 +424,20 @@ export const updateAppointmentRequestStatus = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Appointment request not found.' });
     }
 
-    appointmentRequest.status = status;
-
-    // If approved, create the actual appointment
+    // If approving, check for overlap before proceeding
     if (status === 'approved') {
-      const { appointmentName, date, timeRange, reason, withWhom, phoneNum } = appointmentRequest;
+      const { date, timeRange } = appointmentRequest;
 
-      // Ensure no appointment overlaps
-      await checkAppointmentOverlap(date, timeRange.startTime, timeRange.endTime);
+      try {
+        // Check for time overlap with the request date and time range
+        await checkAppointmentOverlap(date, timeRange.startTime, timeRange.endTime);
+      } catch (error) {
+        // If overlap found, return an error
+        return res.status(400).json({ success: false, message: error.message });
+      }
+
+      // If no overlap, proceed with creating the appointment
+      appointmentRequest.status = status; // Mark as approved
 
       let appointmentDate;
       if (typeof date === 'string') {
@@ -440,58 +446,56 @@ export const updateAppointmentRequestStatus = async (req, res) => {
       } else if (date instanceof Date) {
         appointmentDate = new Date(date);
       }
-      appointmentDate.setUTCHours(0, 0, 0, 0);
+      appointmentDate.setUTCHours(0, 0, 0, 0); // Normalize time to avoid issues
 
-      const startTime = timeRange.startTime;
-      const endTime = timeRange.endTime;
-
+      // Check existing appointments for the same date to determine the appointment number
       const appointmentsForDay = await Appointment.find({
         date: { $gte: appointmentDate, $lt: new Date(appointmentDate).setDate(appointmentDate.getDate() + 1) },
       }).sort({ 'timeRange.startTime': 1 });
 
-      const appointmentNumber = appointmentsForDay.length + 1;
+      const appointmentNumber = appointmentsForDay.length + 1; // Increment appointment number
 
       const newAppointment = new Appointment({
-        appointmentName,
+        appointmentName: appointmentRequest.appointmentName,
         date: appointmentDate,
-        timeRange: { startTime, endTime },
-        reason,
-        withWhom,
+        timeRange: { startTime: timeRange.startTime, endTime: timeRange.endTime },
+        reason: appointmentRequest.reason,
+        withWhom: appointmentRequest.withWhom,
         appointmentNumber,
-        phoneNum,
+        phoneNum: appointmentRequest.phoneNum,
       });
 
-      await newAppointment.save();
-      await reassignAppointmentNumbers(appointmentDate);
+      await newAppointment.save(); // Save the new appointment
+      await reassignAppointmentNumbers(appointmentDate); // Reassign appointment numbers
     }
 
+    // Save the updated status for the appointment request
     await appointmentRequest.save();
 
-    // Fetch the user email from the User model
+    // Fetch the user email
     const user = await User.findById(appointmentRequest.userId);
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found.' });
     }
+
     const userEmail = user.email;
 
-    // Create email transporter
+    // Send email notification
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: 'gamithu619@gmail.com',  // Your email
-        pass: 'kgqk qrxx llgr zhhp',  // Your email password or app-specific password
+        user: 'gamithu619@gmail.com',  // Replace with your email
+        pass: 'kgqk qrxx llgr zhhp',  // Replace with your app password
       },
     });
 
-    // Send email to the user based on the status
     const mailOptions = {
-      from: 'gamithu619@gmail.com',
-      to: userEmail, // Send to the user's email
+      from: 'gamithu619@gmail.com',  // Replace with your email
+      to: userEmail,
       subject: `Appointment Request ${status === 'approved' ? 'Approved' : 'Rejected'}`,
-      text: `Dear ${appointmentRequest.withWhom},\n\nYour appointment with the Managind Director(MD) request has been ${status}.`,
+      text: `Dear ${appointmentRequest.withWhom},\n\nYour appointment with the Managing Director (MD) request has been ${status}.`,
     };
 
-    // Send the email
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.log('Error sending email:', error);
@@ -514,7 +518,6 @@ export const updateAppointmentRequestStatus = async (req, res) => {
     });
   }
 };
-
 
 
 // Get appointment requests for the current user
@@ -595,4 +598,44 @@ cron.schedule('0 0 * * *', () => {
   deleteRejectedAppointments();
 });
 
+export const deleteOldAppointments = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set time to start of the day
 
+    // Delete all appointments that have a date before today
+    const result = await Appointment.deleteMany({ date: { $lt: today } });
+
+    return res.status(200).json({
+      success: true,
+      message: `${result.deletedCount} old appointments deleted successfully!`,
+    });
+  } catch (err) {
+    console.error('Error deleting old appointments:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Error deleting old appointments.',
+    });
+  }
+};
+
+export const deleteOldAppointmentRequests = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set time to start of the day
+
+    // Delete all appointment requests that have a date before today
+    const result = await AppointmentRequest.deleteMany({ date: { $lt: today } });
+
+    return res.status(200).json({
+      success: true,
+      message: `${result.deletedCount} old appointment requests deleted successfully!`,
+    });
+  } catch (err) {
+    console.error('Error deleting old appointment requests:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Error deleting old appointment requests.',
+    });
+  }
+};

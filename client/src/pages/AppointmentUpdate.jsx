@@ -72,6 +72,8 @@ const AppointmentUpdate = () => {
   // Ensure that loading, error states are handled correctly
   if (loading) return <div className="text-center text-gray-700">Loading...</div>;
 
+  const todayDate = new Date().toISOString().split('T')[0]; // Get today's date in yyyy-MM-dd format
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
@@ -110,6 +112,7 @@ const AppointmentUpdate = () => {
               value={appointment.date}
               onChange={(e) => setAppointment({ ...appointment, date: e.target.value })}
               required
+              min={todayDate} // Ensure no past date can be selected
             />
           </div>
 

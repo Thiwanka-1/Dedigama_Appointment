@@ -17,17 +17,21 @@ const AppointmentRequests = () => {
   const [appointments, setAppointments] = useState([]);
 
   // Fetch the appointment requests from the backend
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        const response = await axios.get('/api/appointments/requests');
-        setAppointments(response.data);
-      } catch (error) {
-        console.error("Error fetching appointment requests", error);
-      }
-    };
-    fetchAppointments();
-  }, []);
+  // Fetch the appointment requests from the backend
+useEffect(() => {
+  const fetchAppointments = async () => {
+    try {
+      const response = await axios.get('/api/appointments/requests');
+      // Sort the appointments by date (oldest first)
+      const sortedAppointments = response.data.sort((a, b) => new Date(a.date) - new Date(b.date));
+      setAppointments(sortedAppointments);
+    } catch (error) {
+      console.error("Error fetching appointment requests", error);
+    }
+  };
+  fetchAppointments();
+}, []);
+
 
   // Function to handle deletion of old appointment requests
   const handleDeleteOldRequests = async () => {

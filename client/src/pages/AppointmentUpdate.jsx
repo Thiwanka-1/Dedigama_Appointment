@@ -14,9 +14,10 @@ const AppointmentUpdate = () => {
     endTime: '',
     reason: '',
     withWhom: '',
-    timeRange: { startTime: '', endTime: '' }, // Initialize timeRange as an object
+    timeRange: { startTime: '', endTime: '' },
   });
-  const [loading, setLoading] = useState(true); // Track loading state
+  const [loading, setLoading] = useState(true); // Track fetching state
+  const [submitLoading, setSubmitLoading] = useState(false); // Track form submission state
   const [error, setError] = useState(null); // Track error state
 
   useEffect(() => {
@@ -34,7 +35,7 @@ const AppointmentUpdate = () => {
           date: formattedDate,
           startTime: data.timeRange?.startTime || '',
           endTime: data.timeRange?.endTime || '',
-          timeRange: { startTime: data.timeRange?.startTime || '', endTime: data.timeRange?.endTime || '' }, // Initialize timeRange object
+          timeRange: { startTime: data.timeRange?.startTime || '', endTime: data.timeRange?.endTime || '' },
         });
         setLoading(false); // Data fetched successfully, set loading to false
       } catch (error) {
@@ -47,11 +48,12 @@ const AppointmentUpdate = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitLoading(true);
     try {
-      // Prepare the timeRange object
+      // Prepare the updated appointment data with the correct timeRange object
       const updatedAppointment = {
         ...appointment,
-        timeRange: { startTime: appointment.startTime, endTime: appointment.endTime }, // Ensure timeRange is an object
+        timeRange: { startTime: appointment.startTime, endTime: appointment.endTime },
       };
 
       // Make the API call to update the appointment
@@ -62,27 +64,37 @@ const AppointmentUpdate = () => {
     } catch (error) {
       // Handle the error if the time overlaps (409 Conflict)
       if (error.response && error.response.status === 409) {
-        setError(error.response.data.message || 'The selected time is not free. Please choose another time.');
+        setError(
+          error.response.data.message ||
+            'The selected time is not free. Please choose another time.'
+        );
       } else {
         setError('Error updating appointment');
       }
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
   // Ensure that loading, error states are handled correctly
-  if (loading) return <div className="text-center text-gray-700">Loading...</div>;
+  if (loading)
+    return <div className="text-center text-gray-700">Loading...</div>;
 
   const todayDate = new Date().toISOString().split('T')[0]; // Get today's date in yyyy-MM-dd format
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
-        <h2 className="text-3xl font-semibold text-center text-gray-800 mb-6">Update Appointment</h2>
+        <h2 className="text-3xl font-semibold text-center text-gray-800 mb-6">
+          Update Appointment
+        </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Appointment Number */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Appointment Number</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Appointment Number
+            </label>
             <input
               type="text"
               className="w-full p-3 border border-gray-300 rounded-lg"
@@ -93,12 +105,16 @@ const AppointmentUpdate = () => {
 
           {/* Appointment Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700">Appointment Name</label>
+            <label className="block text-sm font-medium text-gray-700">
+              Appointment Name
+            </label>
             <input
               type="text"
               className="w-full p-3 border border-gray-300 rounded-lg"
               value={appointment.appointmentName}
-              onChange={(e) => setAppointment({ ...appointment, appointmentName: e.target.value })}
+              onChange={(e) =>
+                setAppointment({ ...appointment, appointmentName: e.target.value })
+              }
               required
             />
           </div>
@@ -110,7 +126,9 @@ const AppointmentUpdate = () => {
               type="date"
               className="w-full p-3 border border-gray-300 rounded-lg"
               value={appointment.date}
-              onChange={(e) => setAppointment({ ...appointment, date: e.target.value })}
+              onChange={(e) =>
+                setAppointment({ ...appointment, date: e.target.value })
+              }
               required
               min={todayDate} // Ensure no past date can be selected
             />
@@ -123,7 +141,9 @@ const AppointmentUpdate = () => {
               type="time"
               className="w-full p-3 border border-gray-300 rounded-lg"
               value={appointment.startTime}
-              onChange={(e) => setAppointment({ ...appointment, startTime: e.target.value })}
+              onChange={(e) =>
+                setAppointment({ ...appointment, startTime: e.target.value })
+              }
               required
             />
           </div>
@@ -135,7 +155,9 @@ const AppointmentUpdate = () => {
               type="time"
               className="w-full p-3 border border-gray-300 rounded-lg"
               value={appointment.endTime}
-              onChange={(e) => setAppointment({ ...appointment, endTime: e.target.value })}
+              onChange={(e) =>
+                setAppointment({ ...appointment, endTime: e.target.value })
+              }
               required
             />
           </div>
@@ -146,7 +168,9 @@ const AppointmentUpdate = () => {
             <select
               className="w-full p-3 border border-gray-300 rounded-lg"
               value={appointment.reason}
-              onChange={(e) => setAppointment({ ...appointment, reason: e.target.value })}
+              onChange={(e) =>
+                setAppointment({ ...appointment, reason: e.target.value })
+              }
               required
             >
               <option value="">Select a reason</option>
@@ -180,7 +204,9 @@ const AppointmentUpdate = () => {
               type="text"
               className="w-full p-3 border border-gray-300 rounded-lg"
               value={appointment.withWhom}
-              onChange={(e) => setAppointment({ ...appointment, withWhom: e.target.value })}
+              onChange={(e) =>
+                setAppointment({ ...appointment, withWhom: e.target.value })
+              }
               required
             />
           </div>
@@ -189,9 +215,10 @@ const AppointmentUpdate = () => {
           <div className="flex justify-between">
             <button
               type="submit"
+              disabled={submitLoading}
               className="bg-blue-500 text-white px-6 py-3 rounded-lg"
             >
-              Save Changes
+              {submitLoading ? 'Loading...' : 'Save Changes'}
             </button>
             <button
               type="button"

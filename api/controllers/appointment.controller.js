@@ -5,35 +5,59 @@ import cron from 'node-cron';
 import nodemailer from 'nodemailer';
 import User from '../models/user.model.js';
 
-
 // Helper function to check if two time ranges overlap
-const isOverlapping = (start1, end1, start2, end2) => {
-  return (start1 < end2 && start2 < end1);
-};
-
-// Before adding an appointment
 const checkAppointmentOverlap = async (date, startTime, endTime, excludedAppointmentId = null) => {
+  // Convert the 'date' to a real Date object (if it's a string, this will parse it;
+  // if it's already a Date, this just clones it).
+  const dayStart = new Date(date);
+  // Normalize to midnight so we can query that entire day
+  dayStart.setHours(0, 0, 0, 0);
+
+  // End of day
+  const dayEnd = new Date(dayStart.getTime());
+  dayEnd.setHours(23, 59, 59, 999);
+
+  // Fetch all appointments on that day
   const appointmentsForDay = await Appointment.find({
-    date: { $gte: new Date(date).setHours(0, 0, 0, 0), $lt: new Date(date).setHours(23, 59, 59, 999) }
+    date: { $gte: dayStart, $lt: dayEnd },
   });
 
-  // Check for overlap with all appointments for the day
-  for (const appointment of appointmentsForDay) {
-    // Skip comparing the appointment with itself when updating
-    if (appointment._id.toString() === excludedAppointmentId) {
+  // Convert the requested start/end times into actual timestamps
+  const requestStart = new Date(date); // clone
+  const [reqStartH, reqStartM] = startTime.split(':');
+  requestStart.setHours(reqStartH || 0, reqStartM || 0, 0, 0);
+
+  const requestEnd = new Date(date); // clone
+  const [reqEndH, reqEndM] = endTime.split(':');
+  requestEnd.setHours(reqEndH || 0, reqEndM || 0, 0, 0);
+
+  // Check overlap
+  for (const appt of appointmentsForDay) {
+    // Skip if it's the same appointment we’re updating
+    if (excludedAppointmentId && appt._id.toString() === excludedAppointmentId) {
       continue;
     }
 
-    if (isOverlapping(
-      new Date(`${date}T${startTime}`).getTime(),
-      new Date(`${date}T${endTime}`).getTime(),
-      new Date(`${date}T${appointment.timeRange.startTime}`).getTime(),
-      new Date(`${date}T${appointment.timeRange.endTime}`).getTime()
-    )) {
+    // Build the start/end for the existing appointment
+    const apptStart = new Date(appt.date);
+    const [apptStartH, apptStartM] = appt.timeRange.startTime.split(':');
+    apptStart.setHours(apptStartH || 0, apptStartM || 0, 0, 0);
+
+    const apptEnd = new Date(appt.date);
+    const [apptEndH, apptEndM] = appt.timeRange.endTime.split(':');
+    apptEnd.setHours(apptEndH || 0, apptEndM || 0, 0, 0);
+
+    // If they overlap, throw an error
+    if (isOverlapping(requestStart.getTime(), requestEnd.getTime(), apptStart.getTime(), apptEnd.getTime())) {
       throw new Error('The selected time is not free. Please choose another time.');
     }
   }
 };
+
+const isOverlapping = (start1, end1, start2, end2) => {
+  return start1 < end2 && start2 < end1;
+};
+
 
 // Add appointment
 export const addAppointment = async (req, res) => {
@@ -416,97 +440,125 @@ export const updateAppointmentRequestStatus = async (req, res) => {
     const { status } = req.body;
 
     if (!status || !['approved', 'rejected'].includes(status)) {
-      return res.status(400).json({ success: false, message: 'Status must be either approved or rejected.' });
+      return res.status(400).json({
+        success: false,
+        message: 'Status must be either approved or rejected.'
+      });
     }
 
+    // Find the appointment request
     const appointmentRequest = await AppointmentRequest.findById(id);
     if (!appointmentRequest) {
-      return res.status(404).json({ success: false, message: 'Appointment request not found.' });
+      return res.status(404).json({
+        success: false,
+        message: 'Appointment request not found.'
+      });
     }
 
-    // If approving, check for overlap before proceeding
+    // Fetch the user who made the request (to send email)
+    const user = await User.findById(appointmentRequest.userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found.'
+      });
+    }
+
+    // Prepare nodemailer
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'gamithu619@gmail.com',  // Replace with your email
+        pass: 'kgqk qrxx llgr zhhp',    // Replace with your app password
+      },
+    });
+
+    // Helper function to send an email based on status
+    const sendStatusEmail = async (currentStatus, extraMessage = '') => {
+      const subject = `Appointment Request ${currentStatus === 'approved' ? 'Approved' : 'Rejected'}`;
+      const text = `Dear ${appointmentRequest.withWhom},\n\nYour appointment request to scedule an appointment with the Managing Director(MD) has been ${currentStatus}.${extraMessage}`;
+      const mailOptions = {
+        from: 'gamithu619@gmail.com',
+        to: user.email,
+        subject,
+        text,
+      };
+      try {
+        await transporter.sendMail(mailOptions);
+        console.log('Email sent:', subject);
+      } catch (error) {
+        console.log('Error sending email:', error);
+      }
+    };
+
+    // If we are approving, check overlap
     if (status === 'approved') {
       const { date, timeRange } = appointmentRequest;
-
       try {
-        // Check for time overlap with the request date and time range
+        // Check overlap
         await checkAppointmentOverlap(date, timeRange.startTime, timeRange.endTime);
       } catch (error) {
-        // If overlap found, return an error
-        return res.status(400).json({ success: false, message: error.message });
+        // Overlap => automatically reject
+        appointmentRequest.status = 'rejected';
+        await appointmentRequest.save();
+
+        // Send "auto rejection" email
+        await sendStatusEmail('rejected', `\n\nReason: ${error.message}`);
+
+        return res.status(400).json({
+          success: false,
+          message: error.message + ' Appointment request has been automatically rejected.'
+        });
       }
 
-      // If no overlap, proceed with creating the appointment
-      appointmentRequest.status = status; // Mark as approved
+      // No overlap => proceed with approval
+      appointmentRequest.status = 'approved';
 
-      let appointmentDate;
-      if (typeof date === 'string') {
-        const [year, month, day] = date.split('-');
-        appointmentDate = new Date(Date.UTC(year, month - 1, day));
-      } else if (date instanceof Date) {
-        appointmentDate = new Date(date);
-      }
-      appointmentDate.setUTCHours(0, 0, 0, 0); // Normalize time to avoid issues
+      // Convert request date to a Date object
+      const dateObj = new Date(appointmentRequest.date);
+      dateObj.setHours(0, 0, 0, 0);
 
-      // Check existing appointments for the same date to determine the appointment number
+      // Count how many appointments are on that day
+      const dayStart = new Date(dateObj);
+      const dayEnd = new Date(dateObj);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+
       const appointmentsForDay = await Appointment.find({
-        date: { $gte: appointmentDate, $lt: new Date(appointmentDate).setDate(appointmentDate.getDate() + 1) },
+        date: { $gte: dayStart, $lt: dayEnd },
       }).sort({ 'timeRange.startTime': 1 });
 
-      const appointmentNumber = appointmentsForDay.length + 1; // Increment appointment number
+      const appointmentNumber = appointmentsForDay.length + 1;
 
+      // Create new Appointment
       const newAppointment = new Appointment({
         appointmentName: appointmentRequest.appointmentName,
-        date: appointmentDate,
-        timeRange: { startTime: timeRange.startTime, endTime: timeRange.endTime },
+        date: dateObj,
+        timeRange: {
+          startTime: timeRange.startTime,
+          endTime: timeRange.endTime,
+        },
         reason: appointmentRequest.reason,
         withWhom: appointmentRequest.withWhom,
         appointmentNumber,
         phoneNum: appointmentRequest.phoneNum,
       });
 
-      await newAppointment.save(); // Save the new appointment
-      await reassignAppointmentNumbers(appointmentDate); // Reassign appointment numbers
+      await newAppointment.save();
+      await reassignAppointmentNumbers(dateObj);
+    } else {
+      // If status is 'rejected' by admin action
+      appointmentRequest.status = 'rejected';
     }
 
-    // Save the updated status for the appointment request
+    // Save the final status change
     await appointmentRequest.save();
 
-    // Fetch the user email
-    const user = await User.findById(appointmentRequest.userId);
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found.' });
-    }
-
-    const userEmail = user.email;
-
-    // Send email notification
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: 'gamithu619@gmail.com',  // Replace with your email
-        pass: 'kgqk qrxx llgr zhhp',  // Replace with your app password
-      },
-    });
-
-    const mailOptions = {
-      from: 'gamithu619@gmail.com',  // Replace with your email
-      to: userEmail,
-      subject: `Appointment Request ${status === 'approved' ? 'Approved' : 'Rejected'}`,
-      text: `Dear ${appointmentRequest.withWhom},\n\nYour appointment with the Managing Director (MD) request has been ${status}.`,
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.log('Error sending email:', error);
-      } else {
-        console.log('Email sent:', info.response);
-      }
-    });
+    // Send email for the final status
+    await sendStatusEmail(appointmentRequest.status);
 
     return res.status(200).json({
       success: true,
-      message: `Appointment request ${status} successfully!`,
+      message: `Appointment request ${appointmentRequest.status} successfully!`,
       appointmentRequest,
     });
   } catch (err) {
@@ -520,6 +572,7 @@ export const updateAppointmentRequestStatus = async (req, res) => {
 };
 
 
+
 // Get appointment requests for the current user
 export const getUserAppointmentRequests = async (req, res) => {
   try {
@@ -530,8 +583,6 @@ export const getUserAppointmentRequests = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
-
-
 
 // DELETE endpoint to cancel an appointment request
 export const cancelAppointmentRequest = async (req, res) => {

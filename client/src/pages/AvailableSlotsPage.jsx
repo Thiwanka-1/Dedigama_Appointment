@@ -7,6 +7,7 @@ const AvailableSlotsPage = () => {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [date, setDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isProceeding, setIsProceeding] = useState(false); // New proceeding/loading state for button
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
@@ -14,7 +15,7 @@ const AvailableSlotsPage = () => {
   const fetchAvailableSlots = async (selectedDate) => {
     if (!selectedDate) return; // No date selected
 
-    setIsLoading(true); // Show loading state
+    setIsLoading(true); // Show loading state for fetching slots
     setSelectedSlot(null); // Clear any previously selected slot
     setErrorMessage(''); // Reset any previous error message
 
@@ -26,10 +27,10 @@ const AvailableSlotsPage = () => {
         setErrorMessage('No available slots for the selected date.');
         setAvailableSlots([]);
       }
-      setIsLoading(false);
     } catch (error) {
       console.error('Error fetching available slots:', error.response ? error.response.data : error.message);
       setErrorMessage('Error fetching available slots, please try again.');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -51,6 +52,8 @@ const AvailableSlotsPage = () => {
   // Handle slot request
   const handleRequestAppointment = () => {
     if (selectedSlot) {
+      setIsProceeding(true);
+      // Simulate a loading state before navigation (if necessary)
       navigate(`/appointment-request?date=${date}&startTime=${selectedSlot.startTime}&endTime=${selectedSlot.endTime}`);
     }
   };
@@ -104,10 +107,10 @@ const AvailableSlotsPage = () => {
         {/* Proceed button */}
         <button
           onClick={handleRequestAppointment}
-          className={`w-full py-3 px-4 rounded-md text-white text-lg ${selectedSlot ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'}`}
-          disabled={!selectedSlot}
+          disabled={!selectedSlot || isProceeding}
+          className={`w-full py-3 px-4 rounded-md text-white text-lg ${selectedSlot && !isProceeding ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'}`}
         >
-          Proceed to Request
+          {isProceeding ? 'Loading...' : 'Proceed to Request'}
         </button>
       </div>
     </div>

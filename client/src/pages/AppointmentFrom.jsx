@@ -14,6 +14,7 @@ const AppointmentForm = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [appointmentDetails, setAppointmentDetails] = useState({});
   const [submitError, setSubmitError] = useState('');
+  const [loading, setLoading] = useState(false); // New loading state
 
   const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
 
@@ -39,42 +40,42 @@ const AppointmentForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     // Validate that all fields are filled
     if (!appointmentName || !date || !startTime || !endTime || !reason || !withWhom) {
       setSubmitError('Please fill in all fields before submitting.');
       return;
     }
-  
+
     // Convert start and end times into Date objects for proper comparison
     const startDateTime = moment(`${date} ${startTime}`, "YYYY-MM-DD HH:mm");
     const endDateTime = moment(`${date} ${endTime}`, "YYYY-MM-DD HH:mm");
-  
+
     if (!startDateTime.isValid() || !endDateTime.isValid()) {
       setSubmitError('Invalid date or time. Please check and try again.');
       return;
     }
-  
+
     if (endDateTime.isBefore(startDateTime)) {
       setSubmitError('End time must be after start time.');
       return;
     }
-  
+
     // Check for overlapping appointments
     const isOverlapping = appointments.some(appointment => {
       const existingStartTime = moment(`${appointment.date} ${appointment.timeRange.startTime}`, "YYYY-MM-DD HH:mm");
       const existingEndTime = moment(`${appointment.date} ${appointment.timeRange.endTime}`, "YYYY-MM-DD HH:mm");
-  
+
       return (
         startDateTime.isBefore(existingEndTime) && endDateTime.isAfter(existingStartTime)
       );
     });
-  
+
     if (isOverlapping) {
       setSubmitError('The selected time is not free. Please choose another time.');
       return;
     }
-  
+
     // Prepare the appointment data object
     const appointmentData = {
       appointmentName,
@@ -83,11 +84,13 @@ const AppointmentForm = () => {
       reason,
       withWhom
     };
-  
+
+    setLoading(true); // Start loading
+
     // Proceed with submitting appointment
     try {
       const response = await axios.post('/api/appointments/add', appointmentData);
-  
+
       // Handle success
       setAppointmentDetails(response.data.appointment);
       setShowPopup(true);
@@ -96,7 +99,7 @@ const AppointmentForm = () => {
       setSubmitError(''); // Clear any previous errors
     } catch (error) {
       console.error("Error details:", error);
-  
+
       // Handle error
       if (error.response) {
         setSubmitError(error.response.data.message || 'There was an error adding the appointment. Please try again.');
@@ -105,9 +108,10 @@ const AppointmentForm = () => {
       } else {
         setSubmitError('An error occurred while setting up the request. Please try again later.');
       }
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
-  
 
   const clearForm = () => {
     setAppointmentName('');
@@ -222,8 +226,12 @@ const AppointmentForm = () => {
             {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
           </div>
 
-          <button type="submit" className="w-full p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            Add Appointment
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {loading ? 'Loading...' : 'Add Appointment'}
           </button>
         </div>
       </form>

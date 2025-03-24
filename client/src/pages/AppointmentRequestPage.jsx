@@ -19,8 +19,11 @@ const AppointmentRequestPage = () => {
   const [phoneNum, setPhoneNum] = useState('');
   const [message, setMessage] = useState({ text: '', type: '' });
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(''); // Error message state
+  const [errorMessage, setErrorMessage] = useState(''); // For time range errors
+  const [phoneErrorMessage, setPhoneErrorMessage] = useState(''); // For phone number errors
   const [isTimeValid, setIsTimeValid] = useState(true); // Track if time is valid
+  const [loading, setLoading] = useState(false);
+
   const token = localStorage.getItem('access_token');
   const userId = localStorage.getItem('userId') || 'someUserId';
 
@@ -32,7 +35,7 @@ const AppointmentRequestPage = () => {
     'Property Meeting', 'Finance Meeting', 'RM Meeting', 'ARM Meeting'
   ];
 
-  // Validate time range function
+  // Validate time range
   const validateTimeRange = () => {
     if (selectedStartTime && selectedEndTime) {
       const start = new Date(`1970-01-01T${selectedStartTime}:00`);
@@ -47,12 +50,49 @@ const AppointmentRequestPage = () => {
     }
   };
 
+  // Phone number: only allow digits and a maximum of 10 characters
+  const handlePhoneNumChange = (e) => {
+    const value = e.target.value;
+    const regex = /^[0-9]*$/;
+    if (regex.test(value) && value.length <= 10) {
+      setPhoneNum(value);
+      if (value.length === 10) {
+        setPhoneErrorMessage('');
+      }
+    }
+  };
+
+  // On blur, check if the phone number is exactly 10 digits
+  const handlePhoneBlur = () => {
+    if (phoneNum.length !== 10) {
+      setPhoneErrorMessage('Phone number must be exactly 10 digits.');
+    } else {
+      setPhoneErrorMessage('');
+    }
+  };
+
+  // Requested By: allow only letters, spaces, and periods
+  const handleRequestedByChange = (e) => {
+    const value = e.target.value;
+    const regex = /^[A-Za-z. ]*$/;
+    if (regex.test(value)) {
+      setRequestedBy(value);
+    }
+    // Disallow invalid characters by not updating the state
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Only submit if the time is valid
+    // Check time range validity
     if (!isTimeValid) {
       setMessage({ text: 'Please select a valid time range.', type: 'error' });
+      return;
+    }
+
+    // Check phone number length before submission
+    if (phoneNum.length !== 10) {
+      setPhoneErrorMessage('Phone number must be exactly 10 digits.');
       return;
     }
 
@@ -69,11 +109,13 @@ const AppointmentRequestPage = () => {
       phoneNum,
     };
 
+    setLoading(true);
+
     try {
       const response = await axios.post('/api/appointments/request', appointmentData, {
-        withCredentials: true,  // Make sure cookies (JWT) are sent
+        withCredentials: true, // Send cookies (JWT)
       });
-            
+
       if (response.status === 201 && response.data.success) {
         setMessage({ text: 'Appointment request submitted successfully!', type: 'success' });
         setIsModalOpen(true);
@@ -81,8 +123,10 @@ const AppointmentRequestPage = () => {
         setMessage({ text: 'Something went wrong. Please try again later.', type: 'error' });
       }
     } catch (error) {
-      console.error('Error submitting appointment request:', error.response.data);
+      console.error('Error submitting appointment request:', error.response?.data || error);
       setMessage({ text: 'Error occurred during submission. Please try again later.', type: 'error' });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -95,7 +139,7 @@ const AppointmentRequestPage = () => {
   };
 
   useEffect(() => {
-    // Re-run the validation whenever start or end time changes
+    // Re-run validation whenever the time values change
     validateTimeRange();
   }, [selectedStartTime, selectedEndTime]);
 
@@ -188,29 +232,35 @@ const AppointmentRequestPage = () => {
               type="text"
               id="requestedBy"
               value={requestedBy}
-              onChange={(e) => setRequestedBy(e.target.value)}
-              required
-              className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="mb-6">
-            <label htmlFor="phoneNum" className="block text-sm font-medium text-gray-700">Phone Number</label>
-            <input
-              type="number"
-              id="phoneNum"
-              value={phoneNum}
-              onChange={(e) => setPhoneNum(e.target.value)}
+              onChange={handleRequestedByChange}
               required
               className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
+          <div className="mb-6">
+            <label htmlFor="phoneNum" className="block text-sm font-medium text-gray-700">Phone Number</label>
+            <input
+              type="text"
+              id="phoneNum"
+              value={phoneNum}
+              onChange={handlePhoneNumChange}
+              onBlur={handlePhoneBlur}
+              maxLength={10}
+              required
+              className="mt-2 w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {phoneErrorMessage && (
+              <div className="mt-2 text-red-600 text-sm">{phoneErrorMessage}</div>
+            )}
+          </div>
+
           <button
             type="submit"
+            disabled={!isTimeValid || loading}
             className="w-full py-3 px-4 rounded-md text-white bg-blue-600 hover:bg-blue-700"
-            disabled={!isTimeValid}  // Disable the button if time is not valid
           >
-            Submit Request
+            {loading ? 'Loading...' : 'Submit Request'}
           </button>
         </form>
       </div>
